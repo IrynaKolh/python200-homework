@@ -22,6 +22,22 @@ DATA_DIR = os.path.join(BASE_DIR, "happiness_input")
 OUTPUT_DIR = os.path.join(BASE_DIR, "outputs")
 YEARS = list(range(2015, 2025))
 
+# Mapping of known alternative column names → canonical names used throughout the pipeline.
+# Add entries here if future dataset files use different column names.
+COLUMN_ALIASES = {
+    "ladder_score":       "happiness_score",
+    "score":              "happiness_score",
+    "happiness.score":    "happiness_score",
+    "region":             "regional_indicator",
+    "country_name":       "country",
+    "country_or_region":  "country",
+    "gdp_per_capita_ppp": "gdp_per_capita",
+    "economy_(gdp_per_capita)": "gdp_per_capita",
+    "health_(life_expectancy)": "healthy_life_expectancy",
+    "trust_(government_corruption)": "perceptions_of_corruption",
+    "family":             "social_support",
+}
+
 
 # ---------------------------------------------------------------------------
 # Task 1: Load Multiple Years of Data
@@ -33,15 +49,30 @@ def load_data(years, data_dir, output_dir):
     for year in years:
         path = os.path.join(data_dir, f"world_happiness_{year}.csv")
 
-        df = pd.read_csv(path, sep=";", decimal=",")
+        # --- error handling: skip missing or unreadable files ---
+        if not os.path.exists(path):
+            logger.warning(f"File not found, skipping: {path}")
+            continue
+        try:
+            df = pd.read_csv(path, sep=";", decimal=",")
+        except Exception as e:
+            logger.warning(f"Could not read {path}: {e} — skipping")
+            continue
+
+        # Normalise column names to snake_case
         df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
 
-        if "ladder_score" in df.columns and "happiness_score" not in df.columns:
-            df.rename(columns={"ladder_score": "happiness_score"}, inplace=True)
+        # Apply alias mapping so every year uses the same canonical column names
+        df.rename(columns={k: v for k, v in COLUMN_ALIASES.items() if k in df.columns},
+                  inplace=True)
 
         df["year"] = year
         frames.append(df)
         logger.info(f"Loaded {year}: {len(df)} rows, columns: {df.columns.tolist()}")
+
+    if not frames:
+        raise ValueError(f"No data files could be loaded from {data_dir}. "
+                         "Check that the happiness_input folder exists and contains CSV files.")
 
     merged = pd.concat(frames, ignore_index=True)
 
@@ -171,7 +202,7 @@ def hypothesis_testing(df):
     ssa  = df[df[region_col] == "Sub-Saharan Africa"]["happiness_score"].dropna()
     t2, p2 = stats.ttest_ind(we, ssa)
     logger.info("=== T-test: Western Europe vs Sub-Saharan Africa ===")
-    logger.info(f"  Mean Western Europe: {we.mean():.4f}   Mean Sub-Saharan Africa: {ssa.mean():.4f}")
+    logger.info(f"  Mean Western Europe: {we.mean():.4f}   Me an Sub-Saharan Africa: {ssa.mean():.4f}")
     logger.info(f"  t-statistic: {t2:.4f}   p-value: {p2:.6f}")
     if p2 < 0.05:
         logger.info(

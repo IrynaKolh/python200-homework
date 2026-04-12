@@ -4,7 +4,6 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import statistics as stats
 from scipy import stats
 from scipy.stats import pearsonr
 import seaborn as sns
@@ -297,7 +296,6 @@ print(f"Correlation Matrix:\n{correlation_matrix}")
 # Correlation Q4: Create a scatter plot of x and y below, which have a negative relationship. Add a title "Negative Correlation" and label both axes.
 x = [10, 20, 30, 40, 50]
 y = [90, 75, 60, 45, 30]
-import matplotlib.pyplot as plt
 print("--- Correlation Q4 ---")
 plt.scatter(x, y)
 plt.title("Negative Correlation")
@@ -314,10 +312,6 @@ plt.show()
 # --- Pipelines ---
 # Pipelines Q1: A data pipeline is a sequence of processing steps where each step takes in data, transforms it, and passes the result to the next. You don't need a special framework to build one -- chaining plain functions together is often enough.
 # Given the array below, which contains some missing values scattered throughout:
-import numpy as np
-import pandas as pd
-from scipy import stats
-
 arr = np.array([12.0, 15.0, np.nan, 14.0, 10.0, np.nan, 18.0, 14.0, 16.0, 22.0, np.nan, 13.0])
 # Implement the following three functions and then connect them in a data_pipeline() function.
     # create_series(arr) : takes a NumPy array and returns a pandas Series with the name "values".
