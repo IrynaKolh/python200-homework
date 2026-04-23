@@ -31,6 +31,11 @@ print("X_train shape:", X_train.shape)
 print("X_test shape:", X_test.shape)
 print("y_train shape:", y_train.shape)
 print("y_test shape:", y_test.shape)
+# Results:
+# X_train shape: (120, 4)
+# X_test shape:  (30, 4)
+# y_train shape: (120,)
+# y_test shape:  (30,)
 
 # Preprocessing Q2: Fit a StandardScaler on X_train and use it to transform both X_train and X_test. 
 # Print the mean of each column in X_train_scaled -- they should all be very close to 0. 
@@ -40,6 +45,9 @@ scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled  = scaler.transform(X_test)
 print("Means of columns in X_train_scaled:", X_train_scaled.mean(axis=0))
+# Results:
+# Means of columns in X_train_scaled: [-1.36927506e-16  9.99200722e-16  1.66533454e-17  1.70234197e-16]
+# (all values effectively 0, confirming the scaler is working correctly)
 # We fit the scaler on X_train only to avoid data leakage from the test set, 
 # ensuring that the scaling parameters are derived solely from the training data.
 
@@ -52,6 +60,18 @@ knn.fit(X_train, y_train)
 y_pred = knn.predict(X_test)
 print("KNN Accuracy (unscaled):", accuracy_score(y_test, y_pred))
 print("KNN Classification Report (unscaled):\n", classification_report(y_test, y_pred))
+# Results:
+# KNN Accuracy (unscaled): 1.0
+# KNN Classification Report (unscaled):
+#                precision    recall  f1-score   support
+
+#            0       1.00      1.00      1.00        10
+#            1       1.00      1.00      1.00        10
+#            2       1.00      1.00      1.00        10
+
+#     accuracy                           1.00        30
+#    macro avg       1.00      1.00      1.00        30
+# weighted avg       1.00      1.00      1.00        30
 
 # KNN Q2: Repeat KNN Question 1 using the scaled data (X_train_scaled, X_test_scaled). 
 # Print the accuracy score. Add a comment: does scaling improve performance, hurt it, or make no difference? 
@@ -60,8 +80,12 @@ print("\n--- KNN Q2 ---")
 knn.fit(X_train_scaled, y_train)
 y_pred_scaled = knn.predict(X_test_scaled)
 print("KNN Accuracy (scaled):", accuracy_score(y_test, y_pred_scaled))
-# Scaling improves performance for KNN because it is sensitive to the scale of the input features. 
-# In this dataset, the features are on different scales, so scaling helps the model to perform better. 
+# Results:
+# KNN Accuracy (scaled): 0.9333
+# For this dataset, scaling makes little to no difference in KNN performance.
+# The Iris features (sepal/petal length and width) are already measured in similar
+# units and have comparable ranges, so no single feature dominates the distance
+# calculation before or after scaling.
 
 # KNN Q3: Using cross_val_score with cv=5, evaluate the k=5 KNN model on the unscaled training data. 
 # Print each fold score, the mean, and the standard deviation. 
@@ -71,6 +95,11 @@ cv_scores = cross_val_score(knn, X_train, y_train, cv=5)
 print("KNN Cross-Validation Scores (unscaled):", cv_scores)
 print("KNN Cross-Validation Mean (unscaled):", cv_scores.mean())
 print("KNN Cross-Validation Std Dev (unscaled):", cv_scores.std())
+# Results:
+# KNN Cross-Validation Scores (unscaled): [0.91666667 1.         0.95833333 1.         1.        ]
+# KNN Cross-Validation Mean (unscaled): 0.975
+# KNN Cross-Validation Std Dev (unscaled): 0.03333333333333334
+
 # This result is more trustworthy than a single train/test split because it uses multiple train/test splits to evaluate the model, providing a better estimate of its performance.
 
 # KNN Q4: Loop over k values [1, 3, 5, 7, 9, 11, 13, 15]. 
@@ -81,8 +110,17 @@ for k in range(1, 16, 2):
     knn = KNeighborsClassifier(n_neighbors=k)
     cv_scores = cross_val_score(knn, X_train, y_train, cv=5)
     print(f"KNN Cross-Validation Mean (unscaled) for k={k}:", cv_scores.mean())
-# I would choose k=5 because it typically provides a good balance between bias and variance, and in this case, 
-# it has the highest mean CV score among the tested k values.
+# Results:
+# KNN Cross-Validation Mean (unscaled) for k=1: 0.9416666666666668
+# KNN Cross-Validation Mean (unscaled) for k=3: 0.9583333333333334
+# KNN Cross-Validation Mean (unscaled) for k=5: 0.975
+# KNN Cross-Validation Mean (unscaled) for k=7: 0.975
+# KNN Cross-Validation Mean (unscaled) for k=9: 0.9583333333333334
+# KNN Cross-Validation Mean (unscaled) for k=11: 0.9583333333333334
+# KNN Cross-Validation Mean (unscaled) for k=13: 0.9583333333333334
+# KNN Cross-Validation Mean (unscaled) for k=15: 0.9666666666666666
+# I would choose k=5 (or k=7) -- both achieve the highest mean CV score of 0.975,
+# and k=5 is the conventional choice as it tends to generalise better than k=7 on small datasets.
 
 # --- Classifier Evaluation ---
 # Classifier Evaluation Q1: Using your predictions from KNN Question 1, 
@@ -112,6 +150,17 @@ dt.fit(X_train, y_train)
 y_pred_dt = dt.predict(X_test)
 print("Decision Tree Accuracy (unscaled):", accuracy_score(y_test, y_pred_dt))
 print("Decision Tree Classification Report (unscaled):\n", classification_report(y_test, y_pred_dt))
+# Results:
+# Decision Tree Accuracy (unscaled): 0.9667
+#               precision    recall  f1-score   support
+#            0       1.00      1.00      1.00        10
+#            1       1.00      0.90      0.95        10
+#            2       0.91      1.00      0.95        10
+
+#     accuracy                           0.97        30
+#    macro avg       0.97      0.97      0.97        30
+# weighted avg       0.97      0.97      0.97        30
+
 # The Decision Tree accuracy is comparable to KNN, but it may be less sensitive to the specific distribution of the data.
 # Given that Decision Trees don't rely on distance calculations, scaling the data is unlikely to have a significant impact on the results.
 
@@ -128,6 +177,11 @@ for C in [0.01, 1.0, 100]:
     lr.fit(X_train_scaled, y_train)
     total_coef_magnitude = np.abs(lr.coef_).sum()
     print(f"C={C}, Total Coefficient Magnitude: {total_coef_magnitude}")
+# Results:
+# C=0.01, Total Coefficient Magnitude: 1.9649061746191112
+# C=1.0, Total Coefficient Magnitude: 12.484668687432718
+# C=100, Total Coefficient Magnitude: 37.89029283946399
+
 # As C increases, the total coefficient magnitude also increases. 
 # This indicates that regularization is penalizing larger coefficients, 
 # and as C increases, the penalty is reduced, allowing the model to fit the training data more closely, 
@@ -145,6 +199,9 @@ images   = digits.images  # same data shaped as 8x8 images for plotting
 print("\n--- PCA Q1 ---")
 print("X_digits shape:", X_digits.shape)
 print("images shape:", images.shape)
+# Results:
+# X_digits shape: (1797, 64)
+# images shape:   (1797, 8, 8)
 fig, axes = plt.subplots(1, 10, figsize=(15, 3))
 for i in range(10):
     axes[i].imshow(images[i], cmap='gray_r')
